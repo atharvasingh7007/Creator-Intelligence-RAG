@@ -53,7 +53,7 @@ def compute_video_hash(url: str) -> str:
             canonical = match.group(1)
             break
 
-    return canonical
+    return hashlib.sha256(canonical.encode()).hexdigest()
 
 
 def compute_engagement_rate(likes: int, comments: int, views: int) -> float:
