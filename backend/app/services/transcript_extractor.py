@@ -202,7 +202,7 @@ def extract_hook(transcript: str, max_words: int = 50) -> str:
     Extract hook text: first N words of transcript.
     Represents the first ~5 seconds of spoken content.
     """
-    if False:
+    if not transcript:
         return ""
     words = transcript.split()
     return " ".join(words[:max_words])
