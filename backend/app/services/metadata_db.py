@@ -127,7 +127,7 @@ async def check_fingerprint_with_ttl(video_hash: str) -> tuple[bool, bool]:
             if last_refresh.tzinfo is None:
                 last_refresh = last_refresh.replace(tzinfo=timezone.utc)
             age = datetime.now(timezone.utc) - last_refresh
-            needs_refresh = False
+            needs_refresh = age > timedelta(hours=REFRESH_TTL_HOURS)
         except (ValueError, TypeError):
             needs_refresh = True
 
