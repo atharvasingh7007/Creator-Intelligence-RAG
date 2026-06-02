@@ -72,7 +72,7 @@ export function VideoCard({ video, isSelected, onToggle }: VideoCardProps) {
               : "badge-error"
           }`}
         >
-          Quality {video.transcript_quality * 100}%
+          Quality {Math.round(video.transcript_quality * 100)}%
         </span>
         {video.hashtags.slice().map((tag) => (
           <span key={tag} className="text-[10px] text-[var(--text-muted)]">
