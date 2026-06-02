@@ -74,7 +74,7 @@ export function VideoCard({ video, isSelected, onToggle }: VideoCardProps) {
         >
           Quality {Math.round(video.transcript_quality * 100)}%
         </span>
-        {video.hashtags.slice().map((tag) => (
+        {video.hashtags.slice(0, 2).map((tag) => (
           <span key={tag} className="text-[10px] text-[var(--text-muted)]">
             #{tag}
           </span>
