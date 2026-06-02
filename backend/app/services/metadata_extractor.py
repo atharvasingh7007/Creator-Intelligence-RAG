@@ -92,7 +92,7 @@ async def extract_metadata(url: str) -> VideoMetadata:
         
         # Fix for Instagram float duration
         raw_duration = info.get("duration", 0) or 0
-        duration = int(raw_duration)
+        duration = int(float(raw_duration))
         
         metadata = VideoMetadata(
             video_id=info.get("id", ""),
