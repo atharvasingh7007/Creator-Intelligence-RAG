@@ -178,7 +178,7 @@ export function ChatInterface({ videoIds, sessionId = "default" }: ChatInterface
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div suppressHydrationWarning className="flex flex-col h-full">
       {/* Header */}
       <div className="px-5 py-4 border-b border-white/[0.06]">
         <h2 className="text-lg font-semibold text-[var(--text-primary)]">
