@@ -52,7 +52,7 @@ export function VideoCard({ video, isSelected, onToggle }: VideoCardProps) {
           <div className="metric-label !text-[9px]">Views</div>
         </div>
         <div className="metric-card !p-2">
-          <div className="metric-value !text-base">{video.engagement_rate}%</div>
+          <div className="metric-value !text-base">{video.engagement_rate.toFixed(1)}%</div>
           <div className="metric-label !text-[9px]">Engagement</div>
         </div>
         <div className="metric-card !p-2">
