@@ -73,7 +73,7 @@ async def init_db():
     global _engine, _session_factory
     settings = get_settings()
 
-    _engine = create_async_engine(settings.postgres_url, echo=False)
+    _engine = create_async_engine(settings.postgres_url, echo=False, pool_size=10, max_overflow=20)
     _session_factory = async_sessionmaker(_engine, expire_on_commit=False)
 
     async with _engine.begin() as conn:
