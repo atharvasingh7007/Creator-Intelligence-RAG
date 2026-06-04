@@ -35,7 +35,7 @@ def build_citations(
         video_name = video_meta.title if video_meta else video_id
 
         raw_text = chunk.get("text", "")
-        snippet = (raw_text[:150] + "...") if raw_text else ""
+        snippet = raw_text.strip() if raw_text else ""
 
         citation = Citation(
             video_name=video_name,

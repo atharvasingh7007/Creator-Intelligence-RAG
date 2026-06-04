@@ -107,9 +107,14 @@ async def stream_response(
         try:
             response = await model.generate_content_async(prompt, stream=True)
             async for chunk in response:
-                chunk_text = getattr(chunk, 'text', None)
-                if chunk_text:
-                    yield chunk_text
+                try:
+                    # Gemini throws ValueError if finish_reason=1 but part is empty
+                    chunk_text = getattr(chunk, 'text', None)
+                    if chunk_text:
+                        yield chunk_text
+                except (ValueError, Exception) as chunk_err:
+                    logger.debug(f"Skipping empty or invalid chunk: {chunk_err}")
+                    continue
             return
         except Exception as e:
             if "429" in str(e) or "Quota exceeded" in str(e):
@@ -131,8 +136,12 @@ async def generate_response(prompt: str) -> str:
     for attempt in range(3):
         try:
             response = await model.generate_content_async(prompt)
-            text = getattr(response, 'text', None)
-            return (text or "").strip()
+            try:
+                text = getattr(response, 'text', None)
+                return (text or "").strip()
+            except (ValueError, Exception) as parse_err:
+                logger.error(f"Failed to parse generation response text: {parse_err}")
+                return ""
         except Exception as e:
             if "429" in str(e) or "Quota exceeded" in str(e):
                 logger.warning(f"Rate limit hit in generate. Retrying in 15s ({attempt+1}/3)...")
