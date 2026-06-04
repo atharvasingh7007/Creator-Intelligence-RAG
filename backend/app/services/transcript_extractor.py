@@ -109,8 +109,23 @@ async def extract_transcript(
     # Primary: YouTube Transcript API
     if video_id:
         try:
-            transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
-            raw_text = " ".join(entry["text"] for entry in transcript_list)
+            transcript_list_obj = YouTubeTranscriptApi.list_transcripts(video_id)
+            try:
+                # First, try to find an English transcript (manual or auto-generated)
+                transcript = transcript_list_obj.find_transcript(
+                    ['en', 'en-US', 'en-GB', 'en-IN', 'en-CA', 'en-AU']
+                )
+            except NoTranscriptFound:
+                # If no English, grab the first available language and auto-translate to English
+                available_transcripts = list(transcript_list_obj)
+                if not available_transcripts:
+                    raise NoTranscriptFound(video_id)
+                
+                first_transcript = available_transcripts[0]
+                logger.info(f"No English transcript found for {video_id}. Translating from {first_transcript.language_code} to English.")
+                transcript = first_transcript.translate('en')
+
+            raw_text = " ".join(entry["text"] for entry in transcript.fetch())
             cleaned = _clean_transcript(raw_text)
             quality = _compute_transcript_quality(cleaned, duration_seconds)
 

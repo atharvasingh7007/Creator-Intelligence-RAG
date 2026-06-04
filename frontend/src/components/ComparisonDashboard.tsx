@@ -1,3 +1,5 @@
+"use client";
+
 import type { VideoMetadata } from "@/lib/types";
 import { formatNumber, formatDuration } from "@/lib/api";
 
@@ -15,7 +17,7 @@ export function ComparisonDashboard({ videos }: ComparisonDashboardProps) {
   const hashtagOverlap = union.size > 0 ? intersection.size / union.size : 0;
 
   return (
-    <div className="glass-card p-5 animate-fade-in overflow-x-auto">
+    <div className="glass-card p-5 animate-fade-in">
       <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
         <svg className="w-4 h-4 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -23,7 +25,7 @@ export function ComparisonDashboard({ videos }: ComparisonDashboardProps) {
         Comparison Dashboard
       </h3>
 
-      <div className="min-w-max">
+      <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
           <thead>
             <tr className="border-b border-white/[0.06]">
@@ -37,12 +39,12 @@ export function ComparisonDashboard({ videos }: ComparisonDashboardProps) {
           </thead>
           <tbody className="divide-y divide-white/[0.06]">
             <tr>
-              <td className="py-2 text-[var(--text-muted)]">Views</td>
-              {videos.map(v => <td key={v.video_id} className="py-2 px-3 text-[var(--text-primary)] font-medium">{formatNumber(v.views)}</td>)}
-            </tr>
-            <tr>
               <td className="py-2 text-[var(--text-muted)]">Engagement</td>
               {videos.map(v => <td key={v.video_id} className="py-2 px-3 text-[var(--text-primary)] font-medium">{v.engagement_rate.toFixed(2)}%</td>)}
+            </tr>
+            <tr>
+              <td className="py-2 text-[var(--text-muted)]">Views</td>
+              {videos.map(v => <td key={v.video_id} className="py-2 px-3 text-[var(--text-primary)] font-medium">{formatNumber(v.views)}</td>)}
             </tr>
             <tr>
               <td className="py-2 text-[var(--text-muted)]">Likes</td>
@@ -67,7 +69,7 @@ export function ComparisonDashboard({ videos }: ComparisonDashboardProps) {
       {/* Hashtag overlap */}
       <div className="mt-4 pt-4 border-t border-white/[0.06]">
         <div className="flex justify-between items-center mb-2">
-          <span className="text-xs text-[var(--text-muted)]">Shared Hashtag Overlap</span>
+          <span className="text-xs text-[var(--text-muted)]">Hashtag Overlap</span>
           <span className="text-sm font-semibold text-[var(--text-primary)]">
             {(hashtagOverlap * 100).toFixed(0)}%
           </span>

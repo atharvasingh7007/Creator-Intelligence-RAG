@@ -33,9 +33,10 @@ async def ingest_video(request: IngestionRequest):
 
         # Issue 4 fix: already_exists exits early without setting transcript_quality
         # in state, so fall back to the stored metadata value.
+        tq = result.get("transcript_quality")
         transcript_quality = (
-            result.get("transcript_quality")
-            or metadata.get("transcript_quality", 0.0)
+            tq if tq is not None
+            else metadata.get("transcript_quality", 0.0)
         )
 
         # Issues 3 & 8 fix: handle all possible statuses with meaningful messages.

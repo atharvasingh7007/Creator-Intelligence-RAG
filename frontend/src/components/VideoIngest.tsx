@@ -77,11 +77,11 @@ export function VideoIngest({ onIngested }: VideoIngestProps) {
 
   const getQualityLabel = (status: string, quality: number) => {
     if (status === "success" || status === "partial_success") {
-      return `Quality: ${Math.round(quality * 100)}%`;
+      return `Transcript: ${Math.round(quality * 100)}%`;
     }
     if (status === "already_exists" || status === "refreshed") {
       return quality > 0
-        ? `Transcript quality: ${Math.round(quality * 100)}%`
+        ? `Transcript: ${Math.round(quality * 100)}%`
         : "No transcript";
     }
     return "";

@@ -68,6 +68,7 @@ async def check_fingerprint_node(state: IngestionState) -> dict:
             "already_exists": True,
             "needs_refresh": False,
             "metadata": existing_meta.model_dump() if existing_meta else None,
+            "transcript_quality": existing_meta.transcript_quality if existing_meta else 0.0,
             "status": "already_exists",
             "error": "Already ingested — no duplicate processing",
         }
@@ -81,6 +82,7 @@ async def check_fingerprint_node(state: IngestionState) -> dict:
             "already_exists": True,
             "needs_refresh": True,
             "metadata": existing_meta.model_dump() if existing_meta else None,
+            "transcript_quality": existing_meta.transcript_quality if existing_meta else 0.0,
             "status": "needs_refresh",
         }
 
@@ -226,7 +228,11 @@ async def fallback_node(state: IngestionState) -> dict:
         metadata.summary = "Transcript unavailable for this video."
         await save_video(metadata)
         increment_counter("ingestion_count")
-        return {"status": "partial_success"}
+        return {
+            "status": "partial_success",
+            "transcript_quality": 0.0,
+            "metadata": metadata.model_dump()
+        }
 
     return {"status": "failed"}
 
@@ -254,6 +260,7 @@ async def refresh_metadata_node(state: IngestionState) -> dict:
         )
         return {
             "metadata": fresh_metadata.model_dump(),
+            "transcript_quality": fresh_metadata.transcript_quality,
             "status": "refreshed",
         }
     except Exception as e:

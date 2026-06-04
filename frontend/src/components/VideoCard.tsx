@@ -64,7 +64,7 @@ export function VideoCard({ video, isSelected, onToggle }: VideoCardProps) {
       {/* Quality & Tags */}
       <div className="flex items-center gap-2 mt-3 flex-wrap">
         <span
-          className={`badge ${
+          className={`badge flex items-center gap-1 group relative ${
             video.transcript_quality >= 0.7
               ? "badge-success"
               : video.transcript_quality >= 0.4
@@ -72,7 +72,17 @@ export function VideoCard({ video, isSelected, onToggle }: VideoCardProps) {
               : "badge-error"
           }`}
         >
-          Quality {Math.round(video.transcript_quality * 100)}%
+          Transcript {Math.round(video.transcript_quality * 100)}%
+          <svg className="w-3 h-3 opacity-70 cursor-help" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+
+          {/* Custom Styled Tooltip */}
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 rounded-sm bg-[#1e1e2e] border border-white/10 text-[10px] text-gray-300 shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none leading-snug text-center font-normal">
+            Indicates the availability of closed captions for analysis. 0% means no text transcript could be found for this video.
+            {/* Tooltip Arrow */}
+            <div className="absolute top-full left-1/2 -translate-x-1/2 border-[4px] border-transparent border-t-[#1e1e2e]"></div>
+          </div>
         </span>
         {video.hashtags.slice(0, 2).map((tag) => (
           <span key={tag} className="text-[10px] text-[var(--text-muted)]">
