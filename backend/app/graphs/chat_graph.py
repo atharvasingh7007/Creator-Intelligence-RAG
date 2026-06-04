@@ -30,7 +30,7 @@ from app.prompts.comparison import COMPARISON_PROMPT
 from app.prompts.hook_analysis import HOOK_ANALYSIS_PROMPT
 from app.prompts.creator_info import CREATOR_INFO_PROMPT
 from app.monitoring.logger import get_logger
-from app.monitoring.metrics import increment_counter, record_latency, track_latency
+from app.monitoring.metrics import increment_counter, record_latency
 from app.models.video import VideoMetadata
 
 logger = get_logger(__name__)

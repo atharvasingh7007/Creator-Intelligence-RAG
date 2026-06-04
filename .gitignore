@@ -1,7 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.env
+
+# Node / Frontend
 node_modules/
 .next/
-__pycache__/
-*.pyc
-.env
-.venv
-venv/
+dist/
+build/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Testing / Tooling
+.pytest_cache/
+.coverage
+.mypy_cache/
+.ruff_cache/
+*.log
