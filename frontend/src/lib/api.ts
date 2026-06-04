@@ -17,11 +17,11 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 /**
  * Ingest a video URL.
  */
-export async function ingestVideo(url: string): Promise<IngestionResponse> {
+export async function ingestVideo(url: string, forceRefresh: boolean = false): Promise<IngestionResponse> {
   const res = await fetch(`${API_BASE}/api/ingest`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ url }),
+    body: JSON.stringify({ url, force_refresh: forceRefresh }),
   });
 
   if (!res.ok) {

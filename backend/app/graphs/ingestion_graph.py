@@ -49,6 +49,7 @@ class IngestionState(TypedDict):
     error: str | None
     status: str
     needs_refresh: bool
+    force_refresh: bool
 
 
 # --- Graph Nodes ---
@@ -57,6 +58,11 @@ class IngestionState(TypedDict):
 async def check_fingerprint_node(state: IngestionState) -> dict:
     """Check if video was already ingested and whether metadata is stale."""
     video_hash = compute_video_hash(state["url"])
+    
+    if state.get("force_refresh"):
+        logger.info(f"Force refresh requested for {video_hash[:12]} — bypassing cache")
+        return {"video_hash": video_hash, "already_exists": False, "needs_refresh": False}
+
     exists, needs_refresh = await check_fingerprint_with_ttl(video_hash)
 
     if exists and not needs_refresh:
@@ -362,7 +368,7 @@ def build_ingestion_graph() -> StateGraph:
 ingestion_graph = build_ingestion_graph()
 
 
-async def run_ingestion(url: str) -> dict:
+async def run_ingestion(url: str, force_refresh: bool = False) -> dict:
     """Run the full ingestion pipeline for a video URL."""
     start = time.perf_counter()
 
@@ -380,6 +386,7 @@ async def run_ingestion(url: str) -> dict:
         "error": None,
         "status": "pending",
         "needs_refresh": False,
+        "force_refresh": force_refresh,
     }
 
     result = await ingestion_graph.ainvoke(initial_state)

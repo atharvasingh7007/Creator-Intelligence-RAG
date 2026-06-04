@@ -26,7 +26,7 @@ async def ingest_video(request: IngestionRequest):
     logger.info(f"Ingestion request: {request.url}")
 
     try:
-        result = await run_ingestion(request.url)
+        result = await run_ingestion(request.url, force_refresh=request.force_refresh)
 
         status = result.get("status", "failed")
         metadata = result.get("metadata") or {}

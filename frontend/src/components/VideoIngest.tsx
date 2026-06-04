@@ -10,6 +10,7 @@ interface VideoIngestProps {
 
 export function VideoIngest({ onIngested }: VideoIngestProps) {
   const [url, setUrl] = useState("");
+  const [forceRefresh, setForceRefresh] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<IngestionResponse | null>(null);
   const [error, setError] = useState("");
@@ -30,7 +31,7 @@ export function VideoIngest({ onIngested }: VideoIngestProps) {
     setError("");
 
     try {
-      const response = await ingestVideo(trimmedUrl);
+      const response = await ingestVideo(trimmedUrl, forceRefresh);
       setResult(response);
       // Issues 3 & 8 fix: call onIngested for all non-failed statuses
       // so the sidebar refreshes after refresh, partial_success, etc.
@@ -112,6 +113,20 @@ export function VideoIngest({ onIngested }: VideoIngestProps) {
               {detectPlatform(url)}
             </span>
           )}
+        </div>
+
+        <div className="flex items-center gap-2 pl-1 mb-2">
+          <input
+            id="force-refresh-checkbox"
+            type="checkbox"
+            checked={forceRefresh}
+            onChange={(e) => setForceRefresh(e.target.checked)}
+            className="w-3.5 h-3.5 rounded border-white/[0.1] bg-white/[0.03] text-indigo-500 focus:ring-indigo-500/20"
+            disabled={isLoading}
+          />
+          <label htmlFor="force-refresh-checkbox" className="text-xs text-[var(--text-muted)] cursor-pointer select-none">
+            Force re-ingest (bypass cache)
+          </label>
         </div>
 
         <button

@@ -45,6 +45,7 @@ class IngestionRequest(BaseModel):
     """Request to ingest a video."""
 
     url: str
+    force_refresh: bool = False
 
 
 class IngestionResponse(BaseModel):
@@ -64,6 +65,7 @@ class IngestionState(BaseModel):
     video_hash: str = ""
     already_exists: bool = False
     needs_refresh: bool = False
+    force_refresh: bool = False
     metadata: Optional[VideoMetadata] = None
     transcript: str = ""
     transcript_quality: float = 1.0
