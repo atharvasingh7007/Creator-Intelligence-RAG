@@ -1,95 +1,21 @@
-"use client";
-
 import type { VideoMetadata } from "@/lib/types";
 import { formatNumber, formatDuration } from "@/lib/api";
 
 interface ComparisonDashboardProps {
-  videoA: VideoMetadata;
-  videoB: VideoMetadata;
+  videos: VideoMetadata[];
 }
 
-interface MetricCompareProps {
-  label: string;
-  valueA: number;
-  valueB: number;
-  formatter?: (v: number) => string;
-  suffix?: string;
-  higherIsBetter?: boolean;
-}
+export function ComparisonDashboard({ videos }: ComparisonDashboardProps) {
+  if (!videos || videos.length < 2) return null;
 
-function MetricCompare({
-  label,
-  valueA,
-  valueB,
-  formatter = (v) => formatNumber(v),
-  suffix = "",
-  higherIsBetter = true,
-}: MetricCompareProps) {
-  const maxVal = Math.max(valueA, valueB, 1);
-  const pctA = (valueA / maxVal) * 100;
-  const pctB = (valueB / maxVal) * 100;
-
-  const aWins = higherIsBetter ? valueA > valueB : valueA < valueB;
-  const bWins = higherIsBetter ? valueB > valueA : valueB < valueA;
-
-  return (
-    <div className="space-y-1.5">
-      <div className="flex justify-between items-center text-xs">
-        <span className="text-[var(--text-muted)]">{label}</span>
-      </div>
-      <div className="flex items-center gap-3">
-        {/* Video A */}
-        <div className="flex-1 text-right">
-          <span
-            className={`text-sm font-semibold ${
-              aWins ? "text-indigo-400" : "text-[var(--text-secondary)]"
-            }`}
-          >
-            {formatter(valueA)}{suffix}
-          </span>
-        </div>
-
-        {/* Bar */}
-        <div className="w-32 flex-shrink-0">
-          <div className="comparison-bar">
-            <div
-              className="comparison-bar-fill-a"
-              style={{ width: `${pctA}%` }}
-            />
-          </div>
-          <div className="comparison-bar mt-0.5">
-            <div
-              className="comparison-bar-fill-b"
-              style={{ width: `${pctB}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Video B */}
-        <div className="flex-1">
-          <span
-            className={`text-sm font-semibold ${
-              bWins ? "text-purple-400" : "text-[var(--text-secondary)]"
-            }`}
-          >
-            {formatter(valueB)}{suffix}
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export function ComparisonDashboard({ videoA, videoB }: ComparisonDashboardProps) {
-  // Compute hashtag overlap (Jaccard)
-  const setA = new Set(videoA.hashtags.map((h) => h.toLowerCase()));
-  const setB = new Set(videoB.hashtags.map((h) => h.toLowerCase()));
-  const intersection = new Set([...setA].filter((x) => setB.has(x)));
-  const union = new Set([...setA, ...setB]);
+  // Compute hashtag overlap (intersection of ALL selected videos)
+  const tagSets = videos.map(v => new Set(v.hashtags.map(h => h.toLowerCase())));
+  const intersection = tagSets.reduce((acc, set) => new Set([...acc].filter(x => set.has(x))));
+  const union = new Set(tagSets.flatMap(set => [...set]));
   const hashtagOverlap = union.size > 0 ? intersection.size / union.size : 0;
 
   return (
-    <div className="glass-card p-5 animate-fade-in">
+    <div className="glass-card p-5 animate-fade-in overflow-x-auto">
       <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
         <svg className="w-4 h-4 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -97,49 +23,51 @@ export function ComparisonDashboard({ videoA, videoB }: ComparisonDashboardProps
         Comparison Dashboard
       </h3>
 
-      {/* Video labels */}
-      <div className="flex justify-between items-center mb-4 px-1">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-indigo-500" />
-          <span className="text-xs text-[var(--text-secondary)] truncate max-w-[120px]">
-            {videoA.title}
-          </span>
-        </div>
-        <span className="text-[10px] text-[var(--text-muted)]">vs</span>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-[var(--text-secondary)] truncate max-w-[120px] text-right">
-            {videoB.title}
-          </span>
-          <div className="w-3 h-3 rounded-full bg-purple-500" />
-        </div>
-      </div>
-
-      {/* Metric comparisons */}
-      <div className="space-y-4">
-        <MetricCompare label="Views" valueA={videoA.views} valueB={videoB.views} />
-        <MetricCompare
-          label="Engagement Rate"
-          valueA={videoA.engagement_rate}
-          valueB={videoB.engagement_rate}
-          formatter={(v) => v.toFixed(2)}
-          suffix="%"
-        />
-        <MetricCompare label="Likes" valueA={videoA.likes} valueB={videoB.likes} />
-        <MetricCompare label="Comments" valueA={videoA.comments} valueB={videoB.comments} />
-        <MetricCompare label="Followers" valueA={videoA.follower_count} valueB={videoB.follower_count} />
-        <MetricCompare
-          label="Duration"
-          valueA={videoA.duration}
-          valueB={videoB.duration}
-          formatter={(v) => formatDuration(v)}
-          higherIsBetter={false}
-        />
+      <div className="min-w-max">
+        <table className="w-full text-left text-xs">
+          <thead>
+            <tr className="border-b border-white/[0.06]">
+              <th className="pb-2 font-medium text-[var(--text-muted)]">Metric</th>
+              {videos.map((v) => (
+                <th key={v.video_id} className="pb-2 px-3 font-semibold text-[var(--text-secondary)] max-w-[100px] truncate" title={v.title}>
+                  {v.title}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/[0.06]">
+            <tr>
+              <td className="py-2 text-[var(--text-muted)]">Views</td>
+              {videos.map(v => <td key={v.video_id} className="py-2 px-3 text-[var(--text-primary)] font-medium">{formatNumber(v.views)}</td>)}
+            </tr>
+            <tr>
+              <td className="py-2 text-[var(--text-muted)]">Engagement</td>
+              {videos.map(v => <td key={v.video_id} className="py-2 px-3 text-[var(--text-primary)] font-medium">{v.engagement_rate.toFixed(2)}%</td>)}
+            </tr>
+            <tr>
+              <td className="py-2 text-[var(--text-muted)]">Likes</td>
+              {videos.map(v => <td key={v.video_id} className="py-2 px-3 text-[var(--text-primary)] font-medium">{formatNumber(v.likes)}</td>)}
+            </tr>
+            <tr>
+              <td className="py-2 text-[var(--text-muted)]">Comments</td>
+              {videos.map(v => <td key={v.video_id} className="py-2 px-3 text-[var(--text-primary)] font-medium">{formatNumber(v.comments)}</td>)}
+            </tr>
+            <tr>
+              <td className="py-2 text-[var(--text-muted)]">Followers</td>
+              {videos.map(v => <td key={v.video_id} className="py-2 px-3 text-[var(--text-primary)] font-medium">{formatNumber(v.follower_count)}</td>)}
+            </tr>
+            <tr>
+              <td className="py-2 text-[var(--text-muted)]">Duration</td>
+              {videos.map(v => <td key={v.video_id} className="py-2 px-3 text-[var(--text-primary)] font-medium">{formatDuration(v.duration)}</td>)}
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       {/* Hashtag overlap */}
       <div className="mt-4 pt-4 border-t border-white/[0.06]">
         <div className="flex justify-between items-center mb-2">
-          <span className="text-xs text-[var(--text-muted)]">Hashtag Overlap</span>
+          <span className="text-xs text-[var(--text-muted)]">Shared Hashtag Overlap</span>
           <span className="text-sm font-semibold text-[var(--text-primary)]">
             {(hashtagOverlap * 100).toFixed(0)}%
           </span>

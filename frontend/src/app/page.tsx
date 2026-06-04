@@ -158,11 +158,10 @@ export default function Home() {
             )}
           </div>
 
-          {/* Comparison Dashboard — shows when 2 videos selected */}
-          {selectedVideos.length === 2 && (
+          {/* Comparison Dashboard — shows when 2+ videos selected */}
+          {selectedVideos.length >= 2 && (
             <ComparisonDashboard
-              videoA={selectedVideos[0]}
-              videoB={selectedVideos[1]}
+              videos={selectedVideos}
             />
           )}
         </div>
