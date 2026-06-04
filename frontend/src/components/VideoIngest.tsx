@@ -14,7 +14,6 @@ export function VideoIngest({ onIngested }: VideoIngestProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<IngestionResponse | null>(null);
   const [error, setError] = useState("");
-  const [forceRefresh, setForceRefresh] = useState(false);
 
   const detectPlatform = (url: string): string => {
     if (url.includes("youtube.com") || url.includes("youtu.be")) return "YouTube";
