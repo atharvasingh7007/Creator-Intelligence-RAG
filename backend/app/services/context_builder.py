@@ -61,14 +61,45 @@ def build_context(
 
     # Include analysis for comparison intents
     if analysis:
+        # Create a mapping from raw video ID to friendly label (A, B, C...)
+        vid_to_label = {}
+        for idx, (vid_id, _) in enumerate(metadata.items()):
+            vid_to_label[vid_id] = f"Video {chr(65 + idx)}"
+            
+        def format_pair(pair_str: str) -> str:
+            parts = pair_str.split("_vs_")
+            if len(parts) == 2:
+                l1 = vid_to_label.get(parts[0], parts[0])
+                l2 = vid_to_label.get(parts[1], parts[1])
+                return f"{l1} vs {l2}"
+            return pair_str
+
         parts.append("=== Pre-Computed Analysis ===")
-        parts.append(f"Engagement Gap: {analysis.engagement_gap}")
-        parts.append(f"Creator Size Ratio: {analysis.creator_size_ratio}x")
-        parts.append(f"Duration Difference: {analysis.duration_gap}s")
-        parts.append(f"Hook Similarity: {analysis.hook_similarity}")
-        parts.append(f"Hashtag Overlap: {analysis.hashtag_overlap}")
-        parts.append(f"Questions (A/B): {analysis.question_count_a}/{analysis.question_count_b}")
-        parts.append(f"CTAs (A/B): {analysis.cta_count_a}/{analysis.cta_count_b}")
+        parts.append(f"Hashtag Overlap (All Videos): {analysis.hashtag_overlap}")
+        
+        parts.append("Engagement Gaps (Pairwise):")
+        for pair, gap in analysis.engagement_gaps.items():
+            parts.append(f"  {format_pair(pair)}: {gap}")
+            
+        parts.append("Creator Size Ratios (Pairwise):")
+        for pair, ratio in analysis.creator_size_ratios.items():
+            parts.append(f"  {format_pair(pair)}: {ratio}x")
+            
+        parts.append("Duration Gaps (Pairwise):")
+        for pair, gap in analysis.duration_gaps.items():
+            parts.append(f"  {format_pair(pair)}: {gap}s")
+            
+        parts.append("Hook Similarities (Pairwise):")
+        for pair, sim in analysis.hook_similarities.items():
+            parts.append(f"  {format_pair(pair)}: {sim}")
+            
+        parts.append("Questions Count:")
+        for vid, count in analysis.question_counts.items():
+            parts.append(f"  {vid_to_label.get(vid, vid)}: {count}")
+            
+        parts.append("CTAs Count:")
+        for vid, count in analysis.cta_counts.items():
+            parts.append(f"  {vid_to_label.get(vid, vid)}: {count}")
         parts.append("")
 
     # Include retrieved transcript chunks

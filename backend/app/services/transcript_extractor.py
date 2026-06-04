@@ -97,7 +97,7 @@ def _clean_transcript(text: str) -> str:
 
 async def extract_transcript(
     url: str, duration_seconds: int = 0
-) -> tuple[str, float]:
+) -> tuple[str, float, str]:
     """
     Extract and clean transcript. Returns (transcript, quality_score).
 
@@ -133,11 +133,11 @@ async def extract_transcript(
                 f"Transcript extracted via API for {video_id} "
                 f"(quality: {quality}, words: {len(cleaned.split())})"
             )
-            return cleaned, quality
+            return cleaned, quality, "api"
 
-        except (TranscriptsDisabled, NoTranscriptFound, VideoUnavailable) as e:
+        except Exception as e:
             logger.warning(
-                f"YouTube Transcript API failed for {video_id}: {e}. "
+                f"YouTube Transcript API failed for {video_id}: {type(e).__name__} - {e}. "
                 f"Trying yt-dlp fallback."
             )
 
@@ -156,6 +156,7 @@ async def extract_transcript(
                 [
                     "yt-dlp",
                     "--write-auto-sub",
+                    "--write-sub",
                     "--sub-lang", "en",
                     "--skip-download",
                     "--sub-format", "vtt",
@@ -202,14 +203,14 @@ async def extract_transcript(
                         logger.info(
                             f"Transcript via yt-dlp VTT fallback for {video_id}"
                         )
-                        return cleaned, quality
+                        return cleaned, quality, "fallback"
 
     except (subprocess.TimeoutExpired, FileNotFoundError) as e:
         logger.error(f"yt-dlp fallback failed for {video_id}: {e}")
 
     # Both methods failed
     logger.error(f"All transcript methods failed for {video_id}")
-    return "", 0.0
+    return "", 0.0, "none"
 
 
 def extract_hook(transcript: str, max_words: int = 50) -> str:

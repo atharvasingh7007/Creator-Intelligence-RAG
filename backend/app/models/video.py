@@ -28,6 +28,7 @@ class VideoMetadata(BaseModel):
     summary: str = ""
     platform: str = "youtube"  # "youtube" | "instagram"
     transcript_quality: float = 1.0  # 0.0–1.0 quality score
+    transcript_source: str = "api"  # "api" | "fallback" | "none"
     ingested_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 

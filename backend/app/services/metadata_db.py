@@ -54,6 +54,7 @@ class VideoRecord(Base):
     summary: Mapped[str] = mapped_column(Text, default="")
     platform: Mapped[str] = mapped_column(String(32), default="youtube")
     transcript_quality: Mapped[float] = mapped_column(Float, default=1.0)
+    transcript_source: Mapped[str] = mapped_column(String(32), default="api")
     ingested_at: Mapped[str] = mapped_column(String(64), default="")
     metadata_refreshed_at: Mapped[str] = mapped_column(String(64), default="")
 
@@ -169,6 +170,7 @@ async def save_video(metadata: VideoMetadata):
             summary=metadata.summary,
             platform=metadata.platform,
             transcript_quality=metadata.transcript_quality,
+            transcript_source=metadata.transcript_source,
             ingested_at=metadata.ingested_at,
             metadata_refreshed_at=datetime.now(timezone.utc).isoformat(),
         )
@@ -192,6 +194,7 @@ async def save_video(metadata: VideoMetadata):
                 "summary": stmt.excluded.summary,
                 "platform": stmt.excluded.platform,
                 "transcript_quality": stmt.excluded.transcript_quality,
+                "transcript_source": stmt.excluded.transcript_source,
                 "ingested_at": stmt.excluded.ingested_at,
                 "metadata_refreshed_at": stmt.excluded.metadata_refreshed_at,
             },
@@ -250,6 +253,7 @@ def _record_to_metadata(record: VideoRecord) -> VideoMetadata:
         summary=record.summary,
         platform=record.platform,
         transcript_quality=record.transcript_quality,
+        transcript_source=getattr(record, "transcript_source", "api"),
         ingested_at=record.ingested_at,
     )
 

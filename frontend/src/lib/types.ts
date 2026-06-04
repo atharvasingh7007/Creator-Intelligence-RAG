@@ -20,6 +20,7 @@ export interface VideoMetadata {
   summary: string;
   platform: string;
   transcript_quality: number;
+  transcript_source?: "api" | "fallback" | "none" | string;
   ingested_at: string;
 }
 

@@ -7,6 +7,7 @@ Endpoints:
   GET  /api/videos/{video_id} — get single video metadata
 """
 
+# pyrefly: ignore [missing-import]
 from fastapi import APIRouter, HTTPException
 from app.models.video import IngestionRequest, IngestionResponse
 from app.graphs.ingestion_graph import run_ingestion

@@ -67,67 +67,69 @@ def _cosine_similarity(vec_a: list[float], vec_b: list[float]) -> float:
 
 
 def compute_analysis(
-    video_a: VideoMetadata,
-    video_b: VideoMetadata,
-    transcript_a: str = "",
-    transcript_b: str = "",
+    videos: list[VideoMetadata],
+    transcripts: dict[str, str] = None,
 ) -> AnalysisResult:
     """
-    Compute deterministic analysis metrics between two videos.
-
+    Compute deterministic analysis metrics between N videos.
     Every metric is explainable and defensible in an interview.
     """
-    # Engagement gap
-    engagement_gap = round(
-        video_a.engagement_rate - video_b.engagement_rate, 4
-    )
+    transcripts = transcripts or {}
+    
+    # N-way hashtag overlap (Jaccard-ish)
+    tag_sets = [set(h.lower() for h in v.hashtags) for v in videos]
+    if tag_sets:
+        intersection = tag_sets[0].intersection(*tag_sets[1:])
+        union = tag_sets[0].union(*tag_sets[1:])
+        hashtag_overlap = round(len(intersection) / len(union), 4) if union else 0.0
+    else:
+        hashtag_overlap = 0.0
 
-    # Creator size ratio (larger / smaller)
-    fa = max(video_a.follower_count, 1)
-    fb = max(video_b.follower_count, 1)
-    creator_size_ratio = round(max(fa, fb) / min(fa, fb), 2)
+    engagement_gaps = {}
+    creator_size_ratios = {}
+    duration_gaps = {}
+    hook_similarities = {}
+    question_counts = {}
+    cta_counts = {}
 
-    # Duration gap
-    duration_gap = video_a.duration - video_b.duration
+    for v in videos:
+        txt = transcripts.get(v.video_id, "")
+        question_counts[v.video_id] = _count_questions(txt)
+        cta_counts[v.video_id] = _count_ctas(txt)
 
-    # Hook similarity (cosine similarity of hook embeddings)
-    hook_similarity = 0.0
-    if video_a.hook_text and video_b.hook_text:
-        try:
-            emb_a = embed_single(video_a.hook_text)
-            emb_b = embed_single(video_b.hook_text)
-            hook_similarity = _cosine_similarity(emb_a, emb_b)
-        except Exception as e:
-            logger.warning(f"Hook similarity computation failed: {e}")
-
-    # Hashtag overlap (Jaccard)
-    hashtag_overlap = _jaccard_similarity(
-        set(h.lower() for h in video_a.hashtags),
-        set(h.lower() for h in video_b.hashtags),
-    )
-
-    # Question count
-    question_count_a = _count_questions(transcript_a)
-    question_count_b = _count_questions(transcript_b)
-
-    # CTA count
-    cta_count_a = _count_ctas(transcript_a)
-    cta_count_b = _count_ctas(transcript_b)
+    for i in range(len(videos)):
+        for j in range(i + 1, len(videos)):
+            v1, v2 = videos[i], videos[j]
+            pair_key = f"{v1.video_id}_vs_{v2.video_id}"
+            
+            engagement_gaps[pair_key] = round(abs(v1.engagement_rate - v2.engagement_rate), 4)
+            
+            f1 = max(v1.follower_count, 1)
+            f2 = max(v2.follower_count, 1)
+            creator_size_ratios[pair_key] = round(max(f1, f2) / min(f1, f2), 2)
+            
+            duration_gaps[pair_key] = abs(v1.duration - v2.duration)
+            
+            if v1.hook_text and v2.hook_text:
+                try:
+                    emb_a = embed_single(v1.hook_text)
+                    emb_b = embed_single(v2.hook_text)
+                    hook_similarities[pair_key] = _cosine_similarity(emb_a, emb_b)
+                except Exception as e:
+                    logger.warning(f"Hook similarity computation failed: {e}")
 
     result = AnalysisResult(
-        engagement_gap=engagement_gap,
-        creator_size_ratio=creator_size_ratio,
-        duration_gap=duration_gap,
-        hook_similarity=hook_similarity,
+        engagement_gaps=engagement_gaps,
+        creator_size_ratios=creator_size_ratios,
+        duration_gaps=duration_gaps,
+        hook_similarities=hook_similarities,
         hashtag_overlap=hashtag_overlap,
-        question_count_a=question_count_a,
-        question_count_b=question_count_b,
-        cta_count_a=cta_count_a,
-        cta_count_b=cta_count_b,
+        question_counts=question_counts,
+        cta_counts=cta_counts,
     )
 
     logger.info(
-        f"Analysis computed: engagement_gap={engagement_gap}, "
-        f"hook_sim={hook_similarity}, hashtag_overlap={hashtag_overlap}"
+        f"Analysis computed for {len(videos)} videos: "
+        f"hashtag_overlap={hashtag_overlap}"
     )
     return result

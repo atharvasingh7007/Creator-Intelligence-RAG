@@ -138,16 +138,14 @@ async def analyze_node(state: ChatPipelineState) -> dict:
     if len(video_ids) < 2:
         return {"analysis": None}
 
-    v1, v2 = video_ids[0], video_ids[1]
     meta_dict = state["metadata"]
+    videos = [VideoMetadata(**meta_dict[vid]) for vid in video_ids]
     
-    video_a = VideoMetadata(**meta_dict[v1])
-    video_b = VideoMetadata(**meta_dict[v2])
-    
-    # We pass None for transcripts here as per previous logic (compute_analysis handles it or requires them)
     try:
+        # We pass empty dict for transcripts for now, 
+        # meaning question/cta counts will be 0 unless we fetch transcripts here.
         analysis = await asyncio.to_thread(
-            compute_analysis, video_a, video_b, "", ""
+            compute_analysis, videos, {}
         )
         return {"analysis": analysis.model_dump()}
     except Exception as e:

@@ -19,15 +19,13 @@ class IntentType(str, Enum):
 class AnalysisResult(BaseModel):
     """Deterministic analysis metrics — every field is explainable."""
 
-    engagement_gap: float = 0.0  # engagement rate difference
-    creator_size_ratio: float = 0.0  # follower count ratio
-    duration_gap: int = 0  # seconds difference
-    hook_similarity: float = 0.0  # cosine similarity of hook embeddings
-    hashtag_overlap: float = 0.0  # Jaccard similarity of hashtag sets
-    question_count_a: int = 0  # questions in video A transcript
-    question_count_b: int = 0  # questions in video B transcript
-    cta_count_a: int = 0  # calls-to-action in video A
-    cta_count_b: int = 0  # calls-to-action in video B
+    engagement_gaps: dict[str, float] = Field(default_factory=dict)  # "vid1_vs_vid2" -> gap
+    creator_size_ratios: dict[str, float] = Field(default_factory=dict)
+    duration_gaps: dict[str, int] = Field(default_factory=dict)
+    hook_similarities: dict[str, float] = Field(default_factory=dict)
+    hashtag_overlap: float = 0.0  # N-way overlap
+    question_counts: dict[str, int] = Field(default_factory=dict)  # vid -> count
+    cta_counts: dict[str, int] = Field(default_factory=dict)  # vid -> count
 
 
 class Citation(BaseModel):

@@ -14,6 +14,7 @@ export function VideoIngest({ onIngested }: VideoIngestProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<IngestionResponse | null>(null);
   const [error, setError] = useState("");
+  const [forceRefresh, setForceRefresh] = useState(false);
 
   const detectPlatform = (url: string): string => {
     if (url.includes("youtube.com") || url.includes("youtu.be")) return "YouTube";
@@ -147,6 +148,19 @@ export function VideoIngest({ onIngested }: VideoIngestProps) {
             "Ingest Video"
           )}
         </button>
+
+        <div className="flex items-center gap-2 mt-2 ml-1">
+          <input
+            type="checkbox"
+            id="forceRefresh"
+            checked={forceRefresh}
+            onChange={(e) => setForceRefresh(e.target.checked)}
+            className="w-3.5 h-3.5 rounded border-gray-600 bg-white/5 text-indigo-500 focus:ring-indigo-500/30"
+          />
+          <label htmlFor="forceRefresh" className="text-xs text-[var(--text-secondary)] select-none cursor-pointer">
+            Force Full Re-Ingest (Clear Cache)
+          </label>
+        </div>
       </form>
 
       {/* Result feedback */}

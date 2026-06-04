@@ -42,6 +42,7 @@ class IngestionState(TypedDict):
     metadata: dict | None
     transcript: str
     transcript_quality: float
+    transcript_source: str
     hook_text: str
     chunks: list[dict]
     embeddings: list[list[float]]
@@ -62,7 +63,6 @@ async def check_fingerprint_node(state: IngestionState) -> dict:
     if state.get("force_refresh"):
         logger.info(f"Force refresh requested for {video_hash[:12]} — bypassing cache")
         return {"video_hash": video_hash, "already_exists": False, "needs_refresh": False}
-
     exists, needs_refresh = await check_fingerprint_with_ttl(video_hash)
 
     if exists and not needs_refresh:
@@ -75,6 +75,7 @@ async def check_fingerprint_node(state: IngestionState) -> dict:
             "needs_refresh": False,
             "metadata": existing_meta.model_dump() if existing_meta else None,
             "transcript_quality": existing_meta.transcript_quality if existing_meta else 0.0,
+            "transcript_source": getattr(existing_meta, "transcript_source", "api") if existing_meta else "none",
             "status": "already_exists",
             "error": "Already ingested — no duplicate processing",
         }
@@ -89,6 +90,7 @@ async def check_fingerprint_node(state: IngestionState) -> dict:
             "needs_refresh": True,
             "metadata": existing_meta.model_dump() if existing_meta else None,
             "transcript_quality": existing_meta.transcript_quality if existing_meta else 0.0,
+            "transcript_source": getattr(existing_meta, "transcript_source", "api") if existing_meta else "none",
             "status": "needs_refresh",
         }
 
@@ -111,7 +113,7 @@ async def extract_transcript_node(state: IngestionState) -> dict:
     duration = state.get("metadata", {}).get("duration", 0) if state.get("metadata") else 0
 
     try:
-        transcript, quality = await _extract_transcript(
+        transcript, quality, source = await _extract_transcript(
             state["url"], duration_seconds=duration
         )
 
@@ -120,6 +122,7 @@ async def extract_transcript_node(state: IngestionState) -> dict:
             return {
                 "transcript": "",
                 "transcript_quality": 0.0,
+                "transcript_source": "none",
                 "error": "Transcript unavailable",
                 "status": "transcript_failed",
             }
@@ -127,6 +130,7 @@ async def extract_transcript_node(state: IngestionState) -> dict:
         return {
             "transcript": transcript,
             "transcript_quality": quality,
+            "transcript_source": source,
             "status": "transcript_ok",
         }
     except Exception as e:
@@ -134,6 +138,7 @@ async def extract_transcript_node(state: IngestionState) -> dict:
         return {
             "transcript": "",
             "transcript_quality": 0.0,
+            "transcript_source": "none",
             "error": f"Transcript extraction failed: {str(e)}",
             "status": "transcript_failed",
         }
@@ -178,7 +183,7 @@ async def store_vectors_node(state: IngestionState) -> dict:
     embeddings = state.get("embeddings", [])
 
     if not chunks or not embeddings:
-        return {}
+        return {"status": "vectors_stored"}
 
     ensure_collection()
 
@@ -188,7 +193,7 @@ async def store_vectors_node(state: IngestionState) -> dict:
     upsert_chunks(chunk_objects, embeddings)
 
     logger.info(f"Stored {len(chunks)} chunks in Qdrant")
-    return {}
+    return {"status": "vectors_stored"}
 
 
 async def generate_summary_node(state: IngestionState) -> dict:
@@ -213,6 +218,7 @@ async def store_metadata_node(state: IngestionState) -> dict:
     metadata.hook_text = state.get("hook_text", "")
     metadata.summary = state.get("summary", "")
     metadata.transcript_quality = state.get("transcript_quality", 1.0)
+    metadata.transcript_source = state.get("transcript_source", "api")
 
     await save_video(metadata)
     increment_counter("ingestion_count")
@@ -231,12 +237,14 @@ async def fallback_node(state: IngestionState) -> dict:
 
         metadata = VideoMetadata(**metadata_dict)
         metadata.transcript_quality = 0.0
+        metadata.transcript_source = "none"
         metadata.summary = "Transcript unavailable for this video."
         await save_video(metadata)
         increment_counter("ingestion_count")
         return {
             "status": "partial_success",
             "transcript_quality": 0.0,
+            "transcript_source": "none",
             "metadata": metadata.model_dump()
         }
 
@@ -258,6 +266,7 @@ async def refresh_metadata_node(state: IngestionState) -> dict:
         fresh_metadata.hook_text = old_meta.get("hook_text", "")
         fresh_metadata.summary = old_meta.get("summary", "")
         fresh_metadata.transcript_quality = old_meta.get("transcript_quality", 1.0)
+        fresh_metadata.transcript_source = old_meta.get("transcript_source", "api")
 
         await save_video(fresh_metadata)
         logger.info(
@@ -267,6 +276,7 @@ async def refresh_metadata_node(state: IngestionState) -> dict:
         return {
             "metadata": fresh_metadata.model_dump(),
             "transcript_quality": fresh_metadata.transcript_quality,
+            "transcript_source": fresh_metadata.transcript_source,
             "status": "refreshed",
         }
     except Exception as e:
@@ -379,6 +389,7 @@ async def run_ingestion(url: str, force_refresh: bool = False) -> dict:
         "metadata": None,
         "transcript": "",
         "transcript_quality": 1.0,
+        "transcript_source": "api",
         "hook_text": "",
         "chunks": [],
         "embeddings": [],
