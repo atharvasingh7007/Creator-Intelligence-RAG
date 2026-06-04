@@ -10,7 +10,7 @@ Includes failure paths for transcript and metadata extraction.
 LangGraph shines when showing conditional recovery.
 """
 
-from typing import TypedDict, Annotated, Any
+from typing import TypedDict
 from langgraph.graph import StateGraph, END  # type: ignore
 
 from app.services.metadata_extractor import (
@@ -25,7 +25,7 @@ from app.services.chunker import chunk_transcript as _chunk_transcript
 from app.services.embedder import embed_texts
 from app.services.vector_store import upsert_chunks, ensure_collection
 from app.services.llm import generate_summary as _generate_summary
-from app.services.metadata_db import check_fingerprint, get_video_by_hash, save_video, check_fingerprint_with_ttl
+from app.services.metadata_db import get_video_by_hash, save_video, check_fingerprint_with_ttl
 from app.monitoring.logger import get_logger
 from app.monitoring.metrics import increment_counter, record_latency
 import time

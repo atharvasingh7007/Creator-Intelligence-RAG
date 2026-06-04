@@ -2,6 +2,7 @@
 Video and chunk data models.
 """
 
+# pyrefly: ignore [missing-import]
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime, timezone
@@ -62,6 +63,7 @@ class IngestionState(BaseModel):
     url: str
     video_hash: str = ""
     already_exists: bool = False
+    needs_refresh: bool = False
     metadata: Optional[VideoMetadata] = None
     transcript: str = ""
     transcript_quality: float = 1.0
